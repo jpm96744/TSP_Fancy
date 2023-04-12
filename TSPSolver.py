@@ -121,6 +121,7 @@ class TSPSolver:
 		decayRate = 0.5
 		bestPathCost = 0
 		worstPathCost = 0
+		# paths tuple (path, cost, time)
 		paths = []
 
 		# Build inital distanceMatrix
@@ -140,23 +141,28 @@ class TSPSolver:
 		while time.time() - start_time < time_allowance:
 			# TODO for loop for decrementing pheromoneMatrix by decayRate
 			#  loop n ants going out
-			antPath = []
+
 			for a in range(numAnts):
+				antPath = []
 				# for loop for number of cities
 				currentNode = 0
-				for c in range(ncities):
+				visitedNodes = [0]
+				for c in range(ncities - 1):
 					# TODO ant path selection algorithm (probably the toughest part of this whole project)
 					# create probability array with tuple (probability, destination)
 					probArray = []
 
 					for i in range(len(distanceMatrix)):
-						denominator = 0
-						if distanceMatrix[currentNode][i] != math.inf:
+						denominator = 0.0
+						if distanceMatrix[currentNode][i] != math.inf and i not in visitedNodes:
 							for j in range(len(distanceMatrix)):
-								if distanceMatrix[currentNode][j] != math.inf:
-									denominator = denominator + pheromoneMatrix[currentNode][j] * (1 // distanceMatrix[currentNode][j])
-							numerator = pheromoneMatrix[currentNode][i] * (1 // distanceMatrix[currentNode][i])
-							probArray.append(((numerator // denominator), i))
+								if distanceMatrix[currentNode][j] != math.inf and j not in visitedNodes:
+									dist = 1 / distanceMatrix[currentNode][j]
+									pher = pheromoneMatrix[currentNode][j] * dist
+									denominator = (denominator + pher)
+							numerator = pheromoneMatrix[currentNode][i] * (1 / distanceMatrix[currentNode][i])
+							probability = numerator / denominator
+							probArray.append((round(probability, 2), i))
 						else:
 							probArray.append((0, i))
 					# sort probArray backwards for roulette wheel technique
@@ -166,22 +172,32 @@ class TSPSolver:
 						probRouletteNum = 0
 						for q in range(p, len(probArray)):
 							probRouletteNum = probRouletteNum + probArray[q][0]
-						rouletteWheel.append(probRouletteNum)
+						rouletteWheel.append((round(probRouletteNum, 2), probArray[p][1]))
 
 					# get random path
 					probWinner = round(random.uniform(0, 1), 2)
 
-					for r in range(len(rouletteWheel)):
-						if rouletteWheel[r] >= probWinner and rouletteWheel[r + 1] <= probWinner:
-							antPath.append((currentNode, r))
-							currentNode = r
+					for r in range(len(rouletteWheel) - 1):
+						if rouletteWheel[r][0] >= probWinner >= rouletteWheel[r + 1][0]:
+							antPath.append((currentNode, rouletteWheel[r][1]))
+							currentNode = rouletteWheel[r][1]
+							visitedNodes.append(currentNode)
+							break
+				# find path distance and add to paths
+				distance = 0
+				for i in range(ncities - 1):
+					distance = distance + cities[antPath[i][0]].costTo(cities[antPath[i][1]])
+				paths.append((antPath, distance, time.time() - start_time))
+
+			# get best cost and worst cost
+			# TODO keep a sorted list of all the paths
+			paths.sort(key=lambda x: x[1], reverse=False)
+
+			# get the current bestPathCost and worstPathCost
+			bestPathCost = paths[0][1]
+			worstPathCost = paths[len(paths) - 1][1]
 
 
-
-
-
-
-		# TODO keep a sorted list of all the paths
 
 		# TODO handle pheromones
 		#  add pheromones to best r trails (smallest = best)
