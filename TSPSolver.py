@@ -32,7 +32,7 @@ class TSPSolver:
 		initial BSSF.
 		</summary>
 		<returns>results dictionary for GUI that contains three ints: cost of solution,
-		time spent to find solution, number of permutations tried during search, the
+		time spent to find solution, number of mutations tried during search, the
 		solution found, and three null values for fields not used for this
 		algorithm</returns>
 	'''
@@ -124,31 +124,31 @@ class TSPSolver:
 		# paths tuple (path, cost, time)
 		paths = []
 
-		# Build inital distanceMatrix
+		# Build initial distanceMatrix
 		distanceMatrix = np.full((len(cities), len(cities)), math.inf)
 		for i in range(len(distanceMatrix)):
 			for j in range(len(distanceMatrix)):
 				if i != j:
 					distanceMatrix[i][j] = cities[i].costTo(cities[j])
 
-		# Build initial pheromoneMatrix
-		pheromoneMatrix = np.full((len(cities), len(cities)), 1)
-
-
-		# TODO for loop (timelimit)
-		# TODO send out one group per loop
+		# Build initial pheromoneMatrix.
+		pheromoneMatrix = np.full((len(cities), len(cities)), 1.0)
 
 		while time.time() - start_time < time_allowance:
-			# TODO for loop for decrementing pheromoneMatrix by decayRate
-			#  loop n ants going out
 
+			# decrement pheromoneMatrix by decayRate
+			for i in range(len(pheromoneMatrix)):
+				for j in range(len(pheromoneMatrix)):
+					pheromoneMatrix[i][j] *= decayRate
+
+			# loop n ants going out
 			for a in range(numAnts):
 				antPath = []
 				# for loop for number of cities
 				currentNode = 0
 				visitedNodes = [0]
 				for c in range(ncities - 1):
-					# TODO ant path selection algorithm (probably the toughest part of this whole project)
+					# ant path selection algorithm
 					# create probability array with tuple (probability, destination)
 					probArray = []
 
@@ -189,22 +189,24 @@ class TSPSolver:
 					distance = distance + cities[antPath[i][0]].costTo(cities[antPath[i][1]])
 				paths.append((antPath, distance, time.time() - start_time))
 
-			# get best cost and worst cost
-			# TODO keep a sorted list of all the paths
+			# keep a sorted list of all the paths
 			paths.sort(key=lambda x: x[1], reverse=False)
 
 			# get the current bestPathCost and worstPathCost
 			bestPathCost = paths[0][1]
 			worstPathCost = paths[len(paths) - 1][1]
 
+		#  TODO add pheromones to best trails (smallest = best)
+		# for i in range(bestPathCost):
+		# 	amountToAdd = 1
+		# 	startCity = bestPathCost[i]
+		# 	destinationCity = bestPathCost[i + 1]
+		# 	pheromoneMatrix[startCity, destinationCity] += amountToAdd
 
-
-		# TODO handle pheromones
-		#  add pheromones to best r trails (smallest = best)
-		#  decrement slightly pheromones on all trails
-		#  decrement again k worst paths (from this group)
+		#  TODO decrement again k worst paths (from this group)
 
 		end_time = time.time()
+		# TODO if best path for curr group is better than the current bssf replace it.
 		results['cost'] = bssf.cost
 		results['time'] = end_time - start_time
 		results['count'] = count
