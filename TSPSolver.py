@@ -107,7 +107,35 @@ class TSPSolver:
 		best solution found.  You may use the other three field however you like.
 		algorithm</returns>
 	'''
-
+	# TODO crashes lol
 	def fancy( self,time_allowance=60.0 ):
-		# todo
-		pass
+		results = {}
+		cities = self._scenario.getCities()
+		ncities = len(cities)
+		count = 0
+		bssf = None
+		start_time = time.time()
+
+		# TODO for loop (timelimit)
+
+		# TODO send out one group per loop
+		#  loop n ants going out
+
+		# TODO ant path selection algorithm (probably the toughest part of this whole project)
+
+		# TODO keep a sorted list of all the paths
+
+		# TODO handle pheromones
+		#  add pheromones to best r trails (smallest = best)
+		#  decrement slightly pheromones on all trails
+		#  decrement again k worst paths (from this group)
+
+		end_time = time.time()
+		results['cost'] = bssf.cost if foundTour else math.inf
+		results['time'] = end_time - start_time
+		results['count'] = count
+		results['soln'] = bssf
+		results['max'] = None
+		results['total'] = None
+		results['pruned'] = None
+		return results
