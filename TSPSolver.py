@@ -115,13 +115,71 @@ class TSPSolver:
 		count = 0
 		bssf = None
 		start_time = time.time()
+		# variables for ant colony algorithm
+		numAnts = 20
+		numBestAnts = 0
+		decayRate = 0.5
+		bestPathCost = 0
+		worstPathCost = 0
+		paths = []
+
+		# Build inital distanceMatrix
+		distanceMatrix = np.full((len(cities), len(cities)), math.inf)
+		for i in range(len(distanceMatrix)):
+			for j in range(len(distanceMatrix)):
+				if i != j:
+					distanceMatrix[i][j] = cities[i].costTo(cities[j])
+
+		# Build initial pheromoneMatrix
+		pheromoneMatrix = np.full((len(cities), len(cities)), 1)
+
 
 		# TODO for loop (timelimit)
-
 		# TODO send out one group per loop
-		#  loop n ants going out
 
-		# TODO ant path selection algorithm (probably the toughest part of this whole project)
+		while time.time() - start_time < time_allowance:
+			# TODO for loop for decrementing pheromoneMatrix by decayRate
+			#  loop n ants going out
+			antPath = []
+			for a in range(numAnts):
+				# for loop for number of cities
+				currentNode = 0
+				for c in range(ncities):
+					# TODO ant path selection algorithm (probably the toughest part of this whole project)
+					# create probability array with tuple (probability, destination)
+					probArray = []
+
+					for i in range(len(distanceMatrix)):
+						denominator = 0
+						if distanceMatrix[currentNode][i] != math.inf:
+							for j in range(len(distanceMatrix)):
+								if distanceMatrix[currentNode][j] != math.inf:
+									denominator = denominator + pheromoneMatrix[currentNode][j] * (1 // distanceMatrix[currentNode][j])
+							numerator = pheromoneMatrix[currentNode][i] * (1 // distanceMatrix[currentNode][i])
+							probArray.append(((numerator // denominator), i))
+						else:
+							probArray.append((0, i))
+					# sort probArray backwards for roulette wheel technique
+					probArray.sort(key=lambda x: x[0], reverse=True)
+					rouletteWheel = []
+					for p in range(len(probArray)):
+						probRouletteNum = 0
+						for q in range(p, len(probArray)):
+							probRouletteNum = probRouletteNum + probArray[q][0]
+						rouletteWheel.append(probRouletteNum)
+
+					# get random path
+					probWinner = round(random.uniform(0, 1), 2)
+
+					for r in range(len(rouletteWheel)):
+						if rouletteWheel[r] >= probWinner and rouletteWheel[r + 1] <= probWinner:
+							antPath.append((currentNode, r))
+							currentNode = r
+
+
+
+
+
 
 		# TODO keep a sorted list of all the paths
 
@@ -131,7 +189,7 @@ class TSPSolver:
 		#  decrement again k worst paths (from this group)
 
 		end_time = time.time()
-		results['cost'] = bssf.cost if foundTour else math.inf
+		results['cost'] = bssf.cost
 		results['time'] = end_time - start_time
 		results['count'] = count
 		results['soln'] = bssf
