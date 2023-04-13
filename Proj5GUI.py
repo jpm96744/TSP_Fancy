@@ -375,9 +375,9 @@ class Proj5GUI( QMainWindow ):
 
 		self.curSeed		= QLineEdit('20')
 		self.curSeed.setFixedWidth(100)
-		self.size			= QLineEdit('5')
+		self.size			= QLineEdit('20')
 		self.size.setFixedWidth(50)
-		self.timeLimit		= QLineEdit('60')
+		self.timeLimit		= QLineEdit('10')
 		self.timeLimit.setFixedWidth(50)
 		self.numSolutions	= QLineEdit('--')
 		self.numSolutions.setFixedWidth(100)

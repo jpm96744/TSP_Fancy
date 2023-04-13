@@ -111,8 +111,10 @@ class TSPSolver:
 		results = {}
 		cities = self._scenario.getCities()
 		ncities = len(cities)
+		foundTour = False
 		count = 0
 		bssf = None
+		bestTime = 0.0
 		start_time = time.time()
 		# variables for ant colony algorithm
 		numAnts = 20
@@ -122,6 +124,21 @@ class TSPSolver:
 		worstPathCost = 0
 		# paths tuple (path, cost, time)
 		paths = []
+		# iterations
+		iterations = 0
+
+		#initial bssf
+		while not foundTour:
+			# create a random permutation
+			perm = np.random.permutation( ncities )
+			route = []
+			# Now build the route using the random permutation
+			for i in range( ncities ):
+				route.append( cities[ perm[i] ] )
+			bssf = TSPSolution(route)
+			if bssf.cost < np.inf:
+				# Found a valid route
+				foundTour = True
 
 		# Build initial distanceMatrix
 		distanceMatrix = np.full((len(cities), len(cities)), math.inf)
@@ -135,7 +152,7 @@ class TSPSolver:
 		pheromoneMatrix = np.full((len(cities), len(cities)), 1.0)
 
 		while time.time() - start_time < time_allowance:
-
+			iterations += 1
 			# loop n ants going out
 			for a in range(numAnts):
 				antPath = []
@@ -182,6 +199,7 @@ class TSPSolver:
 				distance = 0
 				for i in range(ncities - 1):
 					distance = distance + cities[antPath[i][0]].costTo(cities[antPath[i][1]])
+				distance = distance + cities[antPath[len(antPath)-1][1]].costTo(cities[antPath[0][0]])
 				paths.append((antPath, distance, time.time() - start_time))
 
 			# keep a sorted list of all the paths
@@ -189,6 +207,16 @@ class TSPSolver:
 
 			# get the current bestPathCost and worstPathCost
 			bestPathCost = paths[0][1]
+			# if better than current bssf, change it to new bestPath
+			if bestPathCost < bssf.cost:
+				print(f'current bssf: {bssf.cost}')
+				print(f' best path cost: {bestPathCost}')
+				route = [cities[0]]
+				for i in paths[0][0]:
+					route.append(cities[i[1]])
+				bssf = TSPSolution(route)
+				bestTime = paths[0][2]
+				count += 1
 			worstPathCost = paths[len(paths) - 1][1]
 
 			# Add pheromones to best trails (smallest = best)
@@ -213,12 +241,10 @@ class TSPSolver:
 				for j in range(len(pheromoneMatrix)):
 					pheromoneMatrix[i][j] *= decayRate
 
-		end_time = time.time()
 		# TODO if best path for curr group is better than the current bssf replace it.
 		results['cost'] = bssf.cost
-		results['time'] = end_time - start_time
+		results['time'] = bestTime
 		results['count'] = count
 		results['soln'] = bssf
-		results['max'] = None
-		results['total'] = None
+		print(iterations)
 		return results
