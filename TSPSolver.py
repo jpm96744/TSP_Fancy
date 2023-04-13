@@ -174,17 +174,18 @@ class TSPSolver:
 		iterations = 0
 
 		#initial bssf
-		while not foundTour:
-			# create a random permutation
-			perm = np.random.permutation( ncities )
-			route = []
-			# Now build the route using the random permutation
-			for i in range( ncities ):
-				route.append( cities[ perm[i] ] )
-			bssf = TSPSolution(route)
-			if bssf.cost < np.inf:
-				# Found a valid route
-				foundTour = True
+		# John commented this out because it didn't seem to be doing anything.
+		# while not foundTour:
+		# 	# create a random permutation
+		# 	perm = np.random.permutation( ncities )
+		# 	route = []
+		# 	# Now build the route using the random permutation
+		# 	for i in range( ncities ):
+		# 		route.append( cities[ perm[i] ] )
+		# 	bssf = TSPSolution(route)
+		# 	if bssf.cost < np.inf:
+		# 		# Found a valid route
+		# 		foundTour = True
 
 		# Build initial distanceMatrix
 		distanceMatrix = np.full((len(cities), len(cities)), math.inf)
@@ -194,12 +195,12 @@ class TSPSolver:
 					distanceMatrix[i][j] = cities[i].costTo(cities[j])
 
 		# Build initial pheromoneMatrix.
-		# FIXME: change this to zero
 		pheromoneMatrix = np.full((len(cities), len(cities)), 1.0)
 
 		# Greedy Algorithm to lay down a first pheromone pass
 		results = self.greedy()
 		greedyPath = results['soln']
+		bssf = greedyPath
 		for i in range(ncities - 1):  # Num paths in one route is n - 1
 			# Adds this percentage of itself back to itself. So somewhere below *2.
 			greedyMultiplier = 2
