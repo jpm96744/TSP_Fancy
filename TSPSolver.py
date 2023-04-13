@@ -107,7 +107,6 @@ class TSPSolver:
 		best solution found.  You may use the other three field however you like.
 		algorithm</returns>
 	'''
-	# TODO crashes lol
 	def fancy( self,time_allowance=60.0 ):
 		results = {}
 		cities = self._scenario.getCities()
@@ -118,7 +117,7 @@ class TSPSolver:
 		# variables for ant colony algorithm
 		numAnts = 20
 		numBestAnts = 0
-		decayRate = 0.5
+		decayRate = 0.9
 		bestPathCost = 0
 		worstPathCost = 0
 		# paths tuple (path, cost, time)
@@ -132,14 +131,10 @@ class TSPSolver:
 					distanceMatrix[i][j] = cities[i].costTo(cities[j])
 
 		# Build initial pheromoneMatrix.
+		# FIXME: change this to zero
 		pheromoneMatrix = np.full((len(cities), len(cities)), 1.0)
 
 		while time.time() - start_time < time_allowance:
-
-			# decrement pheromoneMatrix by decayRate
-			for i in range(len(pheromoneMatrix)):
-				for j in range(len(pheromoneMatrix)):
-					pheromoneMatrix[i][j] *= decayRate
 
 			# loop n ants going out
 			for a in range(numAnts):
@@ -147,7 +142,7 @@ class TSPSolver:
 				# for loop for number of cities
 				currentNode = 0
 				visitedNodes = [0]
-				for c in range(ncities - 1):
+				for c in range(ncities):
 					# ant path selection algorithm
 					# create probability array with tuple (probability, destination)
 					probArray = []
@@ -196,14 +191,26 @@ class TSPSolver:
 			bestPathCost = paths[0][1]
 			worstPathCost = paths[len(paths) - 1][1]
 
-		#  TODO add pheromones to best trails (smallest = best)
-		# for i in range(bestPathCost):
-		# 	amountToAdd = 1
-		# 	startCity = bestPathCost[i]
-		# 	destinationCity = bestPathCost[i + 1]
-		# 	pheromoneMatrix[startCity, destinationCity] += amountToAdd
+			# Add pheromones to best trails (smallest = best)
+			bestPath = paths[0][0]
+			for i in range(ncities - 1):  # Num paths in one route is n - 1
+				# Adds this percentage of itself back to itself. So somewhere below *2.
+				percentageToAdd = 1 - (bestPathCost / worstPathCost)
+				start_city = bestPath[i][0]
+				end_city = bestPath[i][1]
+				pheromoneMatrix[start_city, end_city] += (pheromoneMatrix[start_city, end_city] * percentageToAdd)
 
-		#  TODO decrement again k worst paths (from this group)
+			# Worst trail pheromones get decayed
+			worstPath = paths[len(paths) - 1][0]
+			for i in range(ncities - 1):  # Num paths in one route is n - 1
+				start_city = worstPath[i][0]
+				end_city = worstPath[i][1]
+				pheromoneMatrix[start_city, end_city] *= decayRate
+
+			# Decrement pheromoneMatrix by decayRate
+			for i in range(len(pheromoneMatrix)):
+				for j in range(len(pheromoneMatrix)):
+					pheromoneMatrix[i][j] *= decayRate
 
 		end_time = time.time()
 		# TODO if best path for curr group is better than the current bssf replace it.
@@ -213,5 +220,4 @@ class TSPSolver:
 		results['soln'] = bssf
 		results['max'] = None
 		results['total'] = None
-		results['pruned'] = None
 		return results
