@@ -375,9 +375,9 @@ class Proj5GUI( QMainWindow ):
 
 		self.curSeed		= QLineEdit('20')
 		self.curSeed.setFixedWidth(100)
-		self.size			= QLineEdit('20')
+		self.size			= QLineEdit('5')
 		self.size.setFixedWidth(50)
-		self.timeLimit		= QLineEdit('10')
+		self.timeLimit		= QLineEdit('20')
 		self.timeLimit.setFixedWidth(50)
 		self.numSolutions	= QLineEdit('--')
 		self.numSolutions.setFixedWidth(100)
@@ -469,8 +469,8 @@ class Proj5GUI( QMainWindow ):
 		self.diffDropDown.addItem('Hard')
 		self.diffDropDown.addItem('Hard (Deterministic)')
 		self.diffDropDown.activated.connect(self.diffChanged)
-		self.diffDropDown.setCurrentIndex(0)
-		self.diffChanged(0) # to handle start state
+		self.diffDropDown.setCurrentIndex(2)
+		self.diffChanged(2) # to handle start state
 
 		for alg in self.ALGORITHMS:
 			self.algDropDown.addItem( alg[0] )
