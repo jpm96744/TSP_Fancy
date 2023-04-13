@@ -81,8 +81,54 @@ class TSPSolver:
 	'''
 
 	def greedy( self,time_allowance=60.0 ):
-		pass
+		results = {}  # I think this is called a dictionary? It maps strings to values to transfer to the reader.
+		cities = self._scenario.getCities()  # gets the cities that have already been generated elsewhere
+		# debug_printAllDistances(cities)
+		ncities = len(cities)
+		foundTour = False
+		bssf = None
+		start_time = time.time()
+		route = []  # PATH
+		visited_cities = set()
+		current_city = cities[0]
+		# n turns. i is NOT a node id.
+		for i in range(ncities):
+			visited_cities.add(current_city)
+			nearest_city = self.findNearestCity(current_city, cities, visited_cities)
+			if nearest_city is not None:
+				route.append(nearest_city)  # Append nearest_city to path
+				visited_cities.add(nearest_city)  # Consider nearest_city visited
+				current_city = nearest_city  # Set current_city to nearest_city
+		route.append(cities[0])
+		bssf = TSPSolution(route)  # Creates an TSPSolution for computing information
+		if bssf.cost < np.inf:  # Verify that the cost isn't infinite. If not, then it is valid.
+			# Found a valid route
+			foundTour = True
+		end_time = time.time()
+		results['cost'] = bssf.cost if foundTour else math.inf
+		results['time'] = end_time - start_time
+		results['count'] = 0  # Greedy always returns after the first attempt.
+		results['soln'] = bssf
+		results['max'] = None
+		results['total'] = None
+		results['pruned'] = None
+		return results
 
+	''' <summary>
+			returns None if no close cities are found.
+	'''
+	def findNearestCity(self, current_city, cities, visited_cities):
+		# Compare all city differences and return the nearest one.
+		ncities = len(cities)
+		nearest_city = None
+		nearest_cost = np.inf
+		for i in range(ncities):
+			if not visited_cities.__contains__(cities[i]):  # Has next city NOT been visited?
+				distance_to_i_city = current_city.costTo(cities[i])
+				if distance_to_i_city < nearest_cost:
+					nearest_city = cities[i]
+					nearest_cost = distance_to_i_city
+		return nearest_city
 
 
 	''' <summary>
@@ -150,6 +196,18 @@ class TSPSolver:
 		# Build initial pheromoneMatrix.
 		# FIXME: change this to zero
 		pheromoneMatrix = np.full((len(cities), len(cities)), 1.0)
+
+		# Greedy Algorithm to lay down a first pheromone pass
+		results = self.greedy()
+		greedyPath = results['soln']
+		for i in range(ncities - 1):  # Num paths in one route is n - 1
+			# Adds this percentage of itself back to itself. So somewhere below *2.
+			greedyMultiplier = 2
+			start_city = greedyPath.route[i].getIndex()
+			end_city = greedyPath.route[i + 1].getIndex()
+			pheromoneMatrix[start_city, end_city] += 1  # Insures we get out of zero.
+			pheromoneMatrix[start_city, end_city] += (pheromoneMatrix[start_city, end_city] * greedyMultiplier)
+
 
 		while time.time() - start_time < time_allowance:
 			iterations += 1

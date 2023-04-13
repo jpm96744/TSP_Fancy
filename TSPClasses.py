@@ -134,6 +134,9 @@ class City:
 		self._index = -1
 		self._name	= None
 
+	def getIndex(self):
+		return self._index
+
 	def setIndexAndName( self, index, name ):
 		self._index = index
 		self._name = name
