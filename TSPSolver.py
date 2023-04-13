@@ -198,6 +198,7 @@ class TSPSolver:
 				percentageToAdd = 1 - (bestPathCost / worstPathCost)
 				start_city = bestPath[i][0]
 				end_city = bestPath[i][1]
+				pheromoneMatrix[start_city, end_city] += 1  # Insures we get out of zero.
 				pheromoneMatrix[start_city, end_city] += (pheromoneMatrix[start_city, end_city] * percentageToAdd)
 
 			# Worst trail pheromones get decayed
